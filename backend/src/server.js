@@ -10,6 +10,9 @@ const { connectDatabase } = require('./database/connection');
 const { connectRedis } = require('./cache/redis');
 const { connectMinIO } = require('./storage/minio');
 
+// Import middleware
+const { setNetworkContext } = require('./middleware/network');
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -46,6 +49,9 @@ app.use(compression());
 
 // Logging
 app.use(morgan('combined'));
+
+// Network context middleware
+app.use(setNetworkContext);
 
 // Health check
 app.get('/health', (req, res) => {
