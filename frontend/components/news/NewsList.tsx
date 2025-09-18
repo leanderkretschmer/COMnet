@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { de } from 'date-fns/locale';
 import { ExternalLinkIcon } from '@heroicons/react/24/outline';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface NewsItem {
   title: string;
@@ -52,10 +50,17 @@ export default function NewsList({ limit = 20, showSource = true }: NewsListProp
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return formatDistanceToNow(date, { 
-      addSuffix: true, 
-      locale: de 
-    });
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'vor wenigen Minuten';
+    } else if (diffInHours < 24) {
+      return `vor ${diffInHours} Stunde${diffInHours > 1 ? 'n' : ''}`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `vor ${diffInDays} Tag${diffInDays > 1 ? 'en' : ''}`;
+    }
   };
 
   if (loading) {

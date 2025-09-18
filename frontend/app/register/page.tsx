@@ -15,11 +15,13 @@ export default function RegisterPage() {
     confirmPassword: '',
     display_name: ''
   })
+  const [guestUsername, setGuestUsername] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isGuestLoading, setIsGuestLoading] = useState(false)
   
-  const { register } = useAuth()
+  const { register, guestLogin } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,6 +60,25 @@ export default function RegisterPage() {
       ...prev,
       [e.target.name]: e.target.value
     }))
+  }
+
+  const handleGuestLogin = async () => {
+    if (!guestUsername.trim()) {
+      toast.error('Bitte geben Sie einen Benutzernamen ein')
+      return
+    }
+
+    setIsGuestLoading(true)
+
+    try {
+      await guestLogin(guestUsername.trim())
+      toast.success('Gast-Login erfolgreich!')
+      router.push('/')
+    } catch (error: any) {
+      toast.error(error.message || 'Gast-Login-Fehler')
+    } finally {
+      setIsGuestLoading(false)
+    }
   }
 
   return (
@@ -212,6 +233,47 @@ export default function RegisterPage() {
               )}
             </button>
           </form>
+
+          {/* Guest Login Section */}
+          <div className="mt-8 pt-8 border-t border-white/20">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-semibold text-white mb-2">Oder als Gast anmelden</h3>
+              <p className="text-sm text-gray-300">Temporärer Zugang ohne Registrierung</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="guestUsername" className="block text-sm font-medium text-gray-200 mb-2">
+                  Gast-Benutzername
+                </label>
+                <input
+                  type="text"
+                  id="guestUsername"
+                  value={guestUsername}
+                  onChange={(e) => setGuestUsername(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                  placeholder="Ihr Gast-Name"
+                  maxLength={50}
+                />
+              </div>
+              
+              <button
+                type="button"
+                onClick={handleGuestLogin}
+                disabled={isGuestLoading}
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {isGuestLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Gast-Login...
+                  </div>
+                ) : (
+                  'Als Gast anmelden'
+                )}
+              </button>
+            </div>
+          </div>
 
           {/* Footer */}
           <div className="mt-8 text-center">

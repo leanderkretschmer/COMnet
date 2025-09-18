@@ -49,7 +49,7 @@ export function Header() {
 
           {/* Navigation */}
           <div className="flex items-center space-x-4">
-            {/* News Link */}
+            {/* News Link - Always visible */}
             <Link href="/news" className="hidden md:flex items-center text-gray-300 hover:text-white transition-colors">
               <NewspaperIcon className="h-5 w-5 mr-1" />
               <span className="text-sm">News</span>

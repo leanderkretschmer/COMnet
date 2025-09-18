@@ -172,6 +172,61 @@ router.post('/logout', async (req, res) => {
   }
 });
 
+// Guest login endpoint
+router.post('/guest', async (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username || username.trim().length < 2) {
+      return res.status(400).json({ error: 'Benutzername muss mindestens 2 Zeichen lang sein' });
+    }
+
+    const cleanUsername = username.trim().substring(0, 50);
+    const guestUsername = `guest_${cleanUsername}_${Date.now()}`;
+    const guestDisplayName = cleanUsername;
+
+    // Create temporary guest user
+    const result = await query(
+      `INSERT INTO users (username, email, password_hash, display_name, network_id, is_guest, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, username, display_name, created_at`,
+      [guestUsername, `guest_${Date.now()}@temp.local`, '', guestDisplayName, req.networkId, true, true]
+    );
+
+    const user = result.rows[0];
+
+    // Generate JWT token with shorter expiration for guests
+    const token = jwt.sign(
+      { userId: user.id, username: user.username, networkId: req.networkId, isGuest: true },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' } // Guests expire after 24 hours
+    );
+
+    // Cache user session
+    await cache.set(`session:${user.id}`, {
+      userId: user.id,
+      username: user.username,
+      networkId: req.networkId,
+      isGuest: true
+    }, 24 * 60 * 60); // 24 hours
+
+    res.status(201).json({
+      message: 'Gast-Login erfolgreich',
+      user: {
+        id: user.id,
+        username: user.username,
+        display_name: user.display_name,
+        is_guest: true,
+        created_at: user.created_at
+      },
+      token
+    });
+  } catch (error) {
+    console.error('Gast-Login-Fehler:', error);
+    res.status(500).json({ error: 'Interner Serverfehler' });
+  }
+});
+
 // Verify token endpoint
 router.get('/verify', async (req, res) => {
   try {
@@ -190,7 +245,7 @@ router.get('/verify', async (req, res) => {
 
     // Get user details
     const result = await query(
-      `SELECT u.id, u.username, u.email, u.display_name, u.avatar_url, u.is_verified, n.name as network_name
+      `SELECT u.id, u.username, u.email, u.display_name, u.avatar_url, u.is_verified, u.is_guest, n.name as network_name
        FROM users u 
        JOIN networks n ON u.network_id = n.id
        WHERE u.id = $1`,
@@ -212,6 +267,7 @@ router.get('/verify', async (req, res) => {
         display_name: user.display_name,
         avatar_url: user.avatar_url,
         is_verified: user.is_verified,
+        is_guest: user.is_guest,
         network_name: user.network_name
       }
     });

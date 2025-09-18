@@ -30,6 +30,7 @@ CREATE TABLE users (
     avatar_url VARCHAR(500),
     is_verified BOOLEAN DEFAULT false,
     is_active BOOLEAN DEFAULT true,
+    is_guest BOOLEAN DEFAULT false,
     network_id UUID NOT NULL REFERENCES networks(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

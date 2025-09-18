@@ -21,16 +21,21 @@ const postRoutes = require('./routes/posts');
 const commentRoutes = require('./routes/comments');
 const federationRoutes = require('./routes/federation');
 const networkRoutes = require('./routes/networks');
-const newsRoutes = require('./routes/news');
+// const newsRoutes = require('./routes/news');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for reverse proxy
+  crossOriginEmbedderPolicy: false
+}));
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:8765',
-  credentials: true
+  origin: true, // Allow all origins for reverse proxy
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Rate limiting
@@ -71,7 +76,7 @@ app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/federation', federationRoutes);
 app.use('/api/networks', networkRoutes);
-app.use('/api/news', newsRoutes);
+// app.use('/api/news', newsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
