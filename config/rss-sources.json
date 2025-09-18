@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "id": "tagesschau",
+      "name": "Tagesschau",
+      "description": "Die Nachrichten der ARD",
+      "profileImage": "https://cdn2.steamgriddb.com/logo/50419f514c926b7b25f7eb9bf219650a.png",
+      "rssUrl": "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml",
+      "category": "news",
+      "language": "de",
+      "enabled": true,
+      "maxItems": 20,
+      "refreshInterval": 30
+    }
+  ],
+  "settings": {
+    "defaultRefreshInterval": 30,
+    "maxItemsPerSource": 50,
+    "cacheTimeout": 300,
+    "enableAutoRefresh": true
+  }
+}

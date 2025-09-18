@@ -155,6 +155,45 @@ CREATE TABLE sessions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- News-Channels-Tabelle
+CREATE TABLE news_channels (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    source_id VARCHAR(100) NOT NULL UNIQUE, -- ID aus der RSS-Konfiguration
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    profile_image VARCHAR(500),
+    rss_url VARCHAR(500) NOT NULL,
+    category VARCHAR(50) DEFAULT 'news',
+    language VARCHAR(10) DEFAULT 'de',
+    is_active BOOLEAN DEFAULT true,
+    last_fetched TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- News-Abonnements
+CREATE TABLE news_subscriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    channel_id UUID NOT NULL REFERENCES news_channels(id) ON DELETE CASCADE,
+    subscribed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, channel_id)
+);
+
+-- News-Posts (automatisch erstellte Posts aus RSS-Feeds)
+CREATE TABLE news_posts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    channel_id UUID NOT NULL REFERENCES news_channels(id) ON DELETE CASCADE,
+    original_guid VARCHAR(500) NOT NULL, -- GUID aus dem RSS-Feed
+    title VARCHAR(500) NOT NULL,
+    content TEXT,
+    link_url VARCHAR(500),
+    pub_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_processed BOOLEAN DEFAULT false, -- Ob bereits als Post erstellt
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(channel_id, original_guid)
+);
+
 -- Indizes für bessere Performance
 CREATE INDEX idx_users_network_id ON users(network_id);
 CREATE INDEX idx_users_username ON users(username);
@@ -168,6 +207,11 @@ CREATE INDEX idx_comments_parent_id ON comments(parent_id);
 CREATE INDEX idx_votes_user_post ON votes(user_id, post_id);
 CREATE INDEX idx_votes_user_comment ON votes(user_id, comment_id);
 CREATE INDEX idx_federation_actors_domain ON federation_actors(network_domain);
+CREATE INDEX idx_news_subscriptions_user_id ON news_subscriptions(user_id);
+CREATE INDEX idx_news_subscriptions_channel_id ON news_subscriptions(channel_id);
+CREATE INDEX idx_news_posts_channel_id ON news_posts(channel_id);
+CREATE INDEX idx_news_posts_pub_date ON news_posts(pub_date DESC);
+CREATE INDEX idx_news_posts_processed ON news_posts(is_processed);
 
 -- Trigger für automatische Timestamp-Updates
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -191,6 +235,9 @@ CREATE TRIGGER update_posts_updated_at BEFORE UPDATE ON posts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_comments_updated_at BEFORE UPDATE ON comments
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_news_channels_updated_at BEFORE UPDATE ON news_channels
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Trigger für Score-Berechnung

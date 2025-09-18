@@ -51,6 +51,24 @@ router.get('/posts/:postId/comments', optionalAuth, async (req, res) => {
       [postId, limit, offset]
     );
 
+    // Get user votes for comments if authenticated
+    let userVotes = {};
+    if (req.user) {
+      const voteResult = await query(
+        'SELECT comment_id, vote_type FROM votes WHERE user_id = $1 AND comment_id = ANY($2)',
+        [req.user.id, result.rows.map(c => c.id)]
+      );
+      voteResult.rows.forEach(vote => {
+        userVotes[vote.comment_id] = vote.vote_type;
+      });
+    }
+
+    // Add user votes to comments
+    const commentsWithVotes = result.rows.map(comment => ({
+      ...comment,
+      user_vote: userVotes[comment.id] || 0
+    }));
+
     // Get total count
     const countResult = await query(
       'SELECT COUNT(*) as total FROM comments WHERE post_id = $1',
@@ -61,7 +79,7 @@ router.get('/posts/:postId/comments', optionalAuth, async (req, res) => {
     const totalPages = Math.ceil(total / limit);
 
     res.json({
-      comments: result.rows,
+      comments: commentsWithVotes,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -131,6 +149,71 @@ router.post('/posts/:postId/comments', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Fehler beim Erstellen des Kommentars:', error);
+    res.status(500).json({ error: 'Interner Serverfehler' });
+  }
+});
+
+// Vote on comment
+router.post('/:commentId/vote', authenticateToken, async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { vote_type } = req.body;
+
+    if (![-1, 0, 1].includes(vote_type)) {
+      return res.status(400).json({ error: 'Ungültiger Vote-Typ' });
+    }
+
+    // Check if comment exists
+    const commentResult = await query(
+      'SELECT id FROM comments WHERE id = $1',
+      [commentId]
+    );
+
+    if (commentResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Kommentar nicht gefunden' });
+    }
+
+    // Remove existing vote
+    await query(
+      'DELETE FROM votes WHERE user_id = $1 AND comment_id = $2',
+      [req.user.id, commentId]
+    );
+
+    // Add new vote if not 0
+    if (vote_type !== 0) {
+      await query(
+        'INSERT INTO votes (user_id, comment_id, vote_type) VALUES ($1, $2, $3)',
+        [req.user.id, commentId, vote_type]
+      );
+    }
+
+    // Get updated comment stats
+    const statsResult = await query(
+      `SELECT 
+         COUNT(CASE WHEN vote_type = 1 THEN 1 END) as upvotes,
+         COUNT(CASE WHEN vote_type = -1 THEN 1 END) as downvotes,
+         COALESCE(SUM(vote_type), 0) as score
+       FROM votes WHERE comment_id = $1`,
+      [commentId]
+    );
+
+    const stats = statsResult.rows[0];
+
+    // Update comment stats
+    await query(
+      'UPDATE comments SET upvotes = $1, downvotes = $2, score = $3 WHERE id = $4',
+      [stats.upvotes, stats.downvotes, stats.score, commentId]
+    );
+
+    res.json({
+      message: 'Vote erfolgreich gespeichert',
+      score: stats.score,
+      upvotes: stats.upvotes,
+      downvotes: stats.downvotes,
+      user_vote: vote_type
+    });
+  } catch (error) {
+    console.error('Fehler beim Abstimmen:', error);
     res.status(500).json({ error: 'Interner Serverfehler' });
   }
 });
@@ -209,71 +292,6 @@ router.delete('/:commentId', authenticateToken, async (req, res) => {
     res.json({ message: 'Kommentar erfolgreich gelöscht' });
   } catch (error) {
     console.error('Fehler beim Löschen des Kommentars:', error);
-    res.status(500).json({ error: 'Interner Serverfehler' });
-  }
-});
-
-// Vote on comment
-router.post('/:commentId/vote', authenticateToken, async (req, res) => {
-  try {
-    const { commentId } = req.params;
-    const { vote_type } = req.body;
-
-    if (![-1, 0, 1].includes(vote_type)) {
-      return res.status(400).json({ error: 'Ungültiger Vote-Typ' });
-    }
-
-    // Check if comment exists
-    const commentResult = await query(
-      'SELECT id FROM comments WHERE id = $1',
-      [commentId]
-    );
-
-    if (commentResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Kommentar nicht gefunden' });
-    }
-
-    // Remove existing vote
-    await query(
-      'DELETE FROM votes WHERE user_id = $1 AND comment_id = $2',
-      [req.user.id, commentId]
-    );
-
-    // Add new vote if not 0
-    if (vote_type !== 0) {
-      await query(
-        'INSERT INTO votes (user_id, comment_id, vote_type) VALUES ($1, $2, $3)',
-        [req.user.id, commentId, vote_type]
-      );
-    }
-
-    // Get updated comment stats
-    const statsResult = await query(
-      `SELECT 
-         COUNT(CASE WHEN vote_type = 1 THEN 1 END) as upvotes,
-         COUNT(CASE WHEN vote_type = -1 THEN 1 END) as downvotes,
-         COALESCE(SUM(vote_type), 0) as score
-       FROM votes WHERE comment_id = $1`,
-      [commentId]
-    );
-
-    const stats = statsResult.rows[0];
-
-    // Update comment stats
-    await query(
-      'UPDATE comments SET upvotes = $1, downvotes = $2, score = $3 WHERE id = $4',
-      [stats.upvotes, stats.downvotes, stats.score, commentId]
-    );
-
-    res.json({
-      message: 'Vote erfolgreich gespeichert',
-      score: stats.score,
-      upvotes: stats.upvotes,
-      downvotes: stats.downvotes,
-      user_vote: vote_type
-    });
-  } catch (error) {
-    console.error('Fehler beim Abstimmen:', error);
     res.status(500).json({ error: 'Interner Serverfehler' });
   }
 });

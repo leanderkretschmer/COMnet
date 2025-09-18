@@ -13,7 +13,7 @@ import {
   HandThumbUpIcon, 
   HandThumbDownIcon 
 } from '@heroicons/react/24/solid'
-import { VoteButtons } from './VoteButtons'
+import VoteButtons from './VoteButtons'
 
 interface Post {
   id: string
