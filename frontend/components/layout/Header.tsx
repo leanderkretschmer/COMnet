@@ -9,7 +9,8 @@ import {
   PlusIcon,
   UserCircleIcon,
   Cog6ToothIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  NewspaperIcon
 } from '@heroicons/react/24/outline'
 import { Menu, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
@@ -48,6 +49,12 @@ export function Header() {
 
           {/* Navigation */}
           <div className="flex items-center space-x-4">
+            {/* News Link */}
+            <Link href="/news" className="hidden md:flex items-center text-gray-300 hover:text-white transition-colors">
+              <NewspaperIcon className="h-5 w-5 mr-1" />
+              <span className="text-sm">News</span>
+            </Link>
+
             {isAuthenticated ? (
               <>
                 {/* Create Post Button */}
@@ -184,6 +191,12 @@ export function Header() {
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
             >
               Netzwerke
+            </Link>
+            <Link
+              href="/news"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+            >
+              News
             </Link>
           </div>
         </div>

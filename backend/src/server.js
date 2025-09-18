@@ -21,6 +21,7 @@ const postRoutes = require('./routes/posts');
 const commentRoutes = require('./routes/comments');
 const federationRoutes = require('./routes/federation');
 const networkRoutes = require('./routes/networks');
+const newsRoutes = require('./routes/news');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -70,6 +71,7 @@ app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/federation', federationRoutes);
 app.use('/api/networks', networkRoutes);
+app.use('/api/news', newsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

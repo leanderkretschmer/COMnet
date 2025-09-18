@@ -240,8 +240,8 @@ VALUES
 ),
 (
     '550e8400-e29b-41d4-a716-446655440031',
-    'Rust ist definitiv die bessere Wahl für Performance-kritische Anwendungen!',
-    '550e8400-e29b-41d4-a716-446655440003',
+    'Super Feature! Endlich kann ich News direkt in meinem Feed sehen.',
+    '550e8400-e29b-41d4-a716-446655440002',
     '550e8400-e29b-41d4-a716-446655440021',
     5,
     0,
@@ -249,9 +249,18 @@ VALUES
 ),
 (
     '550e8400-e29b-41d4-a716-446655440032',
+    'Rust ist definitiv die bessere Wahl für Performance-kritische Anwendungen!',
+    '550e8400-e29b-41d4-a716-446655440003',
+    '550e8400-e29b-41d4-a716-446655440023',
+    5,
+    0,
+    5
+),
+(
+    '550e8400-e29b-41d4-a716-446655440033',
     'Ich denke, wir sollten mit ActivityPub beginnen und es bei Bedarf anpassen.',
     '550e8400-e29b-41d4-a716-446655440001',
-    '550e8400-e29b-41d4-a716-446655440022',
+    '550e8400-e29b-41d4-a716-446655440024',
     4,
     0,
     4
@@ -260,4 +269,5 @@ VALUES
 -- Kommentar-Zählung aktualisieren
 UPDATE posts SET comment_count = 1 WHERE id = '550e8400-e29b-41d4-a716-446655440020';
 UPDATE posts SET comment_count = 1 WHERE id = '550e8400-e29b-41d4-a716-446655440021';
-UPDATE posts SET comment_count = 1 WHERE id = '550e8400-e29b-41d4-a716-446655440022';
+UPDATE posts SET comment_count = 1 WHERE id = '550e8400-e29b-41d4-a716-446655440023';
+UPDATE posts SET comment_count = 1 WHERE id = '550e8400-e29b-41d4-a716-446655440024';

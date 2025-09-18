@@ -15,25 +15,6 @@ export default function HomePage() {
           {/* Main Content */}
           <div className="lg:col-span-3">
             <div className="space-y-6">
-              {/* Welcome Section */}
-              <div className="card">
-                <div className="card-body">
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent mb-4">
-                    Willkommen bei COMNet
-                  </h1>
-                  <p className="text-gray-300 mb-6 text-lg">
-                    Eine dezentrale, offene und modulare Social-Media-Plattform. 
-                    Entdecken Sie Communities, teilen Sie Inhalte und vernetzen Sie sich mit anderen Nutzern.
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    <span className="badge badge-primary">Dezentral</span>
-                    <span className="badge badge-success">Open Source</span>
-                    <span className="badge badge-warning">Föderiert</span>
-                    <span className="badge badge-gray">Community-driven</span>
-                  </div>
-                </div>
-              </div>
-
               {/* Posts Feed */}
               <div className="card">
                 <div className="card-header">

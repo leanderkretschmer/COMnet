@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { useQuery, useQueryClient } from 'react-query'
 import Cookies from 'js-cookie'
 import { api } from '@/lib/api'
+import dynamic from 'next/dynamic'
 
 interface User {
   id: string
@@ -30,9 +31,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
   const queryClient = useQueryClient()
 
-  const token = Cookies.get('auth_token')
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  const token = isClient ? Cookies.get('auth_token') : null
 
   // Verify token and get user data
   const { data: authData, isLoading: isVerifying } = useQuery(
@@ -109,12 +115,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value: AuthContextType = {
     user,
-    isLoading: isLoading || isVerifying,
+    isLoading: isLoading || isVerifying || !isClient,
     isAuthenticated: !!user,
     login,
     register,
     logout,
     updateUser
+  }
+
+  // Don't render anything until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <AuthContext.Provider value={{
+        user: null,
+        isLoading: true,
+        isAuthenticated: false,
+        login: async () => {},
+        register: async () => {},
+        logout: () => {},
+        updateUser: () => {}
+      }}>
+        {children}
+      </AuthContext.Provider>
+    )
   }
 
   return (
