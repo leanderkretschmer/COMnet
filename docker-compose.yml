@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Datenbank
+  postgres:
+    image: postgres:15-alpine
+    container_name: comnet-postgres
+    environment:
+      POSTGRES_DB: comnet
+      POSTGRES_USER: comnet
+      POSTGRES_PASSWORD: comnet_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - comnet-network
+
+  # MinIO für Dateispeicherung
+  minio:
+    image: minio/minio:latest
+    container_name: comnet-minio
+    environment:
+      MINIO_ROOT_USER: comnet
+      MINIO_ROOT_PASSWORD: comnet_password
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - comnet-network
+
+  # Redis für Caching und Sessions
+  redis:
+    image: redis:7-alpine
+    container_name: comnet-redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - comnet-network
+
+  # Backend API Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: comnet-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://comnet:comnet_password@postgres:5432/comnet
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: comnet
+      MINIO_SECRET_KEY: comnet_password
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      PORT: 3001
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    networks:
+      - comnet-network
+
+  # Frontend App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: comnet-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "8765:3000"
+    depends_on:
+      - backend
+    networks:
+      - comnet-network
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: comnet-nginx
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - comnet-network
+
+volumes:
+  postgres_data:
+  minio_data:
+  redis_data:
+
+networks:
+  comnet-network:
+    driver: bridge
