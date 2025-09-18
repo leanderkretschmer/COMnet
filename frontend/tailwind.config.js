@@ -8,6 +8,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        olive: {
+          50: '#f7f8f0',
+          100: '#eef0e0',
+          200: '#dde1c1',
+          300: '#c7cd9a',
+          400: '#b0b973',
+          500: '#9acd32',
+          600: '#8bb82d',
+          700: '#7aa328',
+          800: '#6b8e23',
+          900: '#5a7a1e',
+        },
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',
@@ -94,8 +106,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-  ],
+  plugins: [],
 };

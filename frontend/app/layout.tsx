@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   description: 'Eine dezentrale, offene und modulare Social-Media-Plattform, die an Reddit angelehnt ist, aber vollständig Open Source und föderiert/dezentral funktioniert.',
   keywords: ['social media', 'dezentral', 'federiert', 'open source', 'community'],
   authors: [{ name: 'COMNet Team' }],
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/favicon.ico',
+    apple: '/icon.svg',
+  },
   openGraph: {
     title: 'COMNet - Dezentrale Social-Media-Plattform',
     description: 'Eine dezentrale, offene und modulare Social-Media-Plattform',
