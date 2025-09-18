@@ -102,22 +102,107 @@ VALUES
 ('550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440011', 'member'),
 ('550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440012', 'moderator');
 
+-- System-Community für Willkommensnachrichten erstellen
+INSERT INTO communities (id, name, display_name, description, rules, is_public, creator_id, network_id)
+VALUES 
+(
+    '550e8400-e29b-41d4-a716-446655440013',
+    'system',
+    'COMNet System',
+    'Offizielle Nachrichten und Updates von COMNet',
+    'Offizielle System-Nachrichten. Keine Benutzer-Posts erlaubt.',
+    true,
+    '550e8400-e29b-41d4-a716-446655440001',
+    '550e8400-e29b-41d4-a716-446655440000'
+);
+
+-- System-Benutzer für Willkommensnachrichten erstellen
+INSERT INTO users (id, username, email, password_hash, display_name, bio, is_verified, network_id)
+VALUES (
+    '550e8400-e29b-41d4-a716-446655440004',
+    'comnet-system',
+    'system@comnet.local',
+    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- admin123
+    'COMNet System',
+    'Offizieller COMNet System-Account für Nachrichten und Updates',
+    true,
+    '550e8400-e29b-41d4-a716-446655440000'
+);
+
+-- System-Community-Mitgliedschaft
+INSERT INTO community_members (user_id, community_id, role)
+VALUES 
+('550e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440013', 'admin');
+
 -- Demo-Posts erstellen
-INSERT INTO posts (id, title, content, author_id, community_id, network_id, upvotes, downvotes, score)
+INSERT INTO posts (id, title, content, author_id, community_id, network_id, upvotes, downvotes, score, is_pinned)
 VALUES 
 (
     '550e8400-e29b-41d4-a716-446655440020',
-    'Willkommen bei COMNet!',
-    'Willkommen in der dezentralen Social-Media-Plattform COMNet! Hier können Sie Communities erstellen, Beiträge verfassen und sich mit anderen Nutzern vernetzen. Das Besondere an COMNet ist die dezentrale Architektur - jeder kann sein eigenes Netzwerk hosten und trotzdem mit anderen vernetzt bleiben.',
-    '550e8400-e29b-41d4-a716-446655440001',
-    '550e8400-e29b-41d4-a716-446655440010',
+    '🎉 Herzlich willkommen bei COMNet!',
+    'Willkommen in der dezentralen Social-Media-Plattform COMNet! 
+
+Hier können Sie:
+• Communities erstellen und beitreten
+• Beiträge verfassen und kommentieren
+• Mit anderen Nutzern vernetzen
+• News-Channels abonnieren
+• Ihr eigenes Netzwerk hosten
+
+Das Besondere an COMNet ist die dezentrale Architektur - jeder kann sein eigenes Netzwerk (COM) hosten und trotzdem mit anderen vernetzt bleiben. 
+
+Viel Spaß beim Entdecken! 🚀',
+    '550e8400-e29b-41d4-a716-446655440004',
+    '550e8400-e29b-41d4-a716-446655440013',
     '550e8400-e29b-41d4-a716-446655440000',
-    15,
+    25,
     0,
-    15
+    25,
+    true
 ),
 (
     '550e8400-e29b-41d4-a716-446655440021',
+    '📰 News-Feature ist jetzt verfügbar!',
+    'Ab sofort können Sie News-Channels abonnieren und deren Artikel direkt in Ihrem Feed sehen!
+
+So funktioniert es:
+1. Gehen Sie zur News-Seite
+2. Wählen Sie interessante Channels aus
+3. Abonnieren Sie diese
+4. Neue Artikel erscheinen automatisch in Ihrem Feed
+
+Aktuell verfügbar: Tagesschau
+Weitere Quellen folgen bald!',
+    '550e8400-e29b-41d4-a716-446655440004',
+    '550e8400-e29b-41d4-a716-446655440013',
+    '550e8400-e29b-41d4-a716-446655440000',
+    18,
+    0,
+    18,
+    true
+),
+(
+    '550e8400-e29b-41d4-a716-446655440022',
+    '💬 Kommentar-System ist online!',
+    'Sie können jetzt auf alle Posts kommentieren und diese bewerten!
+
+Features:
+• Kommentare schreiben und bearbeiten
+• Upvotes und Downvotes für Posts und Kommentare
+• Verschachtelte Antworten
+• Echtzeit-Updates
+
+Probieren Sie es aus und teilen Sie Ihre Gedanken mit der Community!',
+    '550e8400-e29b-41d4-a716-446655440004',
+    '550e8400-e29b-41d4-a716-446655440013',
+    '550e8400-e29b-41d4-a716-446655440000',
+    12,
+    0,
+    12,
+    false
+),
+(
+    '550e8400-e29b-41d4-a716-446655440023',
     'Node.js vs Rust für Backend-Entwicklung',
     'Ich frage mich, welche Sprache besser für ein dezentrales Social-Media-Backend geeignet ist. Node.js hat den Vorteil der schnellen Entwicklung und des großen Ökosystems, während Rust bessere Performance und Speichersicherheit bietet. Was denkt ihr?',
     '550e8400-e29b-41d4-a716-446655440002',
@@ -125,10 +210,11 @@ VALUES
     '550e8400-e29b-41d4-a716-446655440000',
     8,
     1,
-    7
+    7,
+    false
 ),
 (
-    '550e8400-e29b-41d4-a716-446655440022',
+    '550e8400-e29b-41d4-a716-446655440024',
     'ActivityPub vs eigenes Föderations-Protokoll',
     'Für COMNet überlegen wir, ob wir ActivityPub verwenden oder ein eigenes, leichtes Föderations-Protokoll entwickeln sollen. ActivityPub ist etabliert, aber komplex. Ein eigenes Protokoll könnte einfacher sein, aber weniger interoperabel. Eure Meinung?',
     '550e8400-e29b-41d4-a716-446655440003',
@@ -136,7 +222,8 @@ VALUES
     '550e8400-e29b-41d4-a716-446655440000',
     12,
     2,
-    10
+    10,
+    false
 );
 
 -- Demo-Kommentare
