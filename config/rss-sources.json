@@ -12,6 +12,18 @@
       "maxItems": 20,
       "refreshInterval": 30
     }
+    {
+      "id": "deutschlandfunk",
+      "name": "Deutschlandfunk",
+      "description": "Die Nachrichten des Deutschlandfunk",
+      "profileImage": "https://upload.wikimedia.org/wikipedia/commons/5/53/Deutschlandfunk_Logo_klein.png",
+      "rssUrl": "https://www.deutschlandfunk.de/nachrichten-100.rss",
+      "category": "news",
+      "language": "de",
+      "enabled": true,
+      "maxItems": 20,
+      "refreshInterval": 30
+    }
   ],
   "settings": {
     "defaultRefreshInterval": 30,

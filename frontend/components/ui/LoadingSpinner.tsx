@@ -1,3 +1,5 @@
+'use client';
+
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
@@ -16,3 +18,6 @@ export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerPr
     </div>
   )
 }
+
+// Add default export for backward compatibility
+export default LoadingSpinner;
