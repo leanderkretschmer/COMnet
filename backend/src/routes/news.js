@@ -125,6 +125,102 @@ router.get('/sources', async (req, res) => {
   }
 });
 
+// Get user's subscribed news channels
+router.get('/subscriptions', authenticateToken, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT nc.id, nc.source_id, nc.name, nc.description, nc.profile_image, 
+              nc.category, nc.language, ns.subscribed_at
+       FROM news_subscriptions ns
+       JOIN news_channels nc ON ns.channel_id = nc.id
+       WHERE ns.user_id = $1 AND nc.is_active = true
+       ORDER BY ns.subscribed_at DESC`,
+      [req.user.id]
+    );
+
+    res.json({
+      subscriptions: result.rows
+    });
+  } catch (error) {
+    console.error('Fehler beim Laden der Abonnements:', error);
+    res.status(500).json({ error: 'Fehler beim Laden der Abonnements' });
+  }
+});
+
+// Subscribe to a news channel
+router.post('/subscribe/:sourceId', authenticateToken, async (req, res) => {
+  try {
+    const { sourceId } = req.params;
+    
+    // Check if channel exists
+    const channelResult = await query(
+      'SELECT id FROM news_channels WHERE source_id = $1 AND is_active = true',
+      [sourceId]
+    );
+
+    if (channelResult.rows.length === 0) {
+      return res.status(404).json({ error: 'News-Channel nicht gefunden' });
+    }
+
+    const channelId = channelResult.rows[0].id;
+
+    // Check if already subscribed
+    const existingResult = await query(
+      'SELECT id FROM news_subscriptions WHERE user_id = $1 AND channel_id = $2',
+      [req.user.id, channelId]
+    );
+
+    if (existingResult.rows.length > 0) {
+      return res.status(400).json({ error: 'Bereits abonniert' });
+    }
+
+    // Subscribe
+    await query(
+      'INSERT INTO news_subscriptions (user_id, channel_id) VALUES ($1, $2)',
+      [req.user.id, channelId]
+    );
+
+    res.json({ message: 'Erfolgreich abonniert' });
+  } catch (error) {
+    console.error('Fehler beim Abonnieren:', error);
+    res.status(500).json({ error: 'Fehler beim Abonnieren' });
+  }
+});
+
+// Unsubscribe from a news channel
+router.delete('/unsubscribe/:sourceId', authenticateToken, async (req, res) => {
+  try {
+    const { sourceId } = req.params;
+    
+    // Get channel ID
+    const channelResult = await query(
+      'SELECT id FROM news_channels WHERE source_id = $1',
+      [sourceId]
+    );
+
+    if (channelResult.rows.length === 0) {
+      return res.status(404).json({ error: 'News-Channel nicht gefunden' });
+    }
+
+    const channelId = channelResult.rows[0].id;
+
+    // Unsubscribe
+    const result = await query(
+      'DELETE FROM news_subscriptions WHERE user_id = $1 AND channel_id = $2',
+      [req.user.id, channelId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(400).json({ error: 'Nicht abonniert' });
+    }
+
+    res.json({ message: 'Abonnement erfolgreich gekündigt' });
+  } catch (error) {
+    console.error('Fehler beim Kündigen:', error);
+    res.status(500).json({ error: 'Fehler beim Kündigen' });
+  }
+});
+
 // Get news from all sources
 router.get('/feed', async (req, res) => {
   try {
